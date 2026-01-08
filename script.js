@@ -1,35 +1,17 @@
 // --- FIREBASE CONFIGURATION ---
-// IMPORTANT: Replace with your actual Firebase project keys
 const firebaseConfig = {
-     apiKey: "YOUR_API_KEY_HERE",
-    authDomain: "aps-belagavi.firebaseapp.com",
-    projectId: "aps-belagavi",
-    storageBucket: "aps-belagavi.appspot.com",
-    messagingSenderId: "SENDER_ID",
-    appId: "APP_ID"
+  apiKey: "AIzaSyCaHjvIQUOF2OtsdIqZp45RCKYTFKh8QwM",
+  authDomain: "aps-belagavi.firebaseapp.com",
+  projectId: "aps-belagavi",
+  storageBucket: "aps-belagavi.firebasestorage.app",
+  messagingSenderId: "858834476044",
+  appId: "1:858834476044:web:944b457fd2a7b0c0e42229",
+  measurementId: "G-B4729784Q4"
 };
 
-// --- INITIALIZATION ---
-window.addEventListener('load', async () => {
-    // 1. Faster Boot Animation (2 Seconds total)
-    playWelcomeAudio();
-    setTimeout(() => {
-        document.getElementById('boot-screen').classList.add('fade-out');
-        setTimeout(() => { document.getElementById('boot-screen').style.display = 'none'; }, 500);
-    }, 2000); 
-
-    // 2. Firebase Connect
-    if(window.firebaseModules) {
-        try {
-            app = window.firebaseModules.initializeApp(firebaseConfig);
-            db = window.firebaseModules.getFirestore(app);
-            loadDatabase();
-        } catch(e) {
-            console.warn("Offline Mode");
-            loadDatabase();
-        }
-    }
-});
+// Initialize Firebase
+const app = initializeApp(firebaseConfig);
+const analytics = getAnalytics(app);
 
 // --- DATABASE DEFAULT ---
 const defaultUsers = {
