@@ -8,6 +8,19 @@
     messagingSenderId: "SENDER_ID",
     appId: "APP_ID"
 };*/
+const odbc = require('odbc');
+
+async function connectAccess() {
+  const connectionString =
+    'Driver={Microsoft Access Driver (*.mdb, *.accdb)};' +
+    'DBQ=C:\Users\user22\Documents\aps.accdb;';
+
+  const connection = await odbc.connect(connectionString);
+  const result = await connection.query('SELECT * FROM Admin');
+  console.log(result);
+}
+
+connectAccess();
 
 //let db = null;
 //let app = null;
