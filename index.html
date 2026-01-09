@@ -36,98 +36,6 @@
     <p style="color: #ccc; margin-top: 20px">System Initializing...</p>
   </div>
 
-  <!-- Admin Verification Overlay -->
-  <div id="admin-verify-overlay" class="hidden">
-    <div class="verify-box">
-      <i class="fas fa-fingerprint" style="font-size: 3rem; color: #00b894; margin-bottom: 20px"></i>
-      <h3 style="color: #fff">Verifying Identity...</h3>
-      <p style="color: #ccc">Checking Biometrics</p>
-      <div class="loading-bar"><div class="bar-progress"></div></div>
-    </div>
-  </div>
-
-  <!-- Security Modal -->
-  <div id="security-modal" class="modal-overlay hidden">
-    <div class="security-box">
-      <div style="text-align:center; margin-bottom:20px;">
-        <i class="fas fa-user-shield" style="font-size: 3rem; color: #6C63FF;"></i>
-      </div>
-      <h3>Security Check</h3>
-      <p id="security-question-text" style="color:#555; margin-bottom:15px;">Security Question</p>
-      <input type="password" id="security-answer" placeholder="Enter Answer" class="clean-input" />
-      <p id="security-error" class="error-msg" style="display:none; color:red; margin-top:5px;">Incorrect Answer</p>
-      <div style="display:flex; gap:10px; margin-top:20px;">
-        <button class="btn-cancel" onclick="cancelLogin()">Cancel</button>
-        <button class="btn-verify" onclick="verifySecurityAnswer()">Verify</button>
-      </div>
-    </div>
-  </div>
-
-  <!-- Master Choice Modal -->
-  <div id="master-choice-modal" class="modal-overlay hidden">
-    <div class="security-box">
-      <h3 style="color:#2D3436;">Authentication Method</h3>
-      <p style="margin-bottom:20px;">Choose how to unlock the Master Account:</p>
-      <button class="btn-login" style="background:#00b894; margin-bottom:10px;" onclick="chooseAuth('voice')">
-        <i class="fas fa-microphone"></i> Voice Authorization
-      </button>
-      <button class="btn-login" style="background:#6C63FF;" onclick="chooseAuth('code')">
-        <i class="fas fa-keyboard"></i> Override Code
-      </button>
-    </div>
-  </div>
-
-  <!-- Voice Modal -->
-  <div id="voice-modal" class="modal-overlay hidden">
-    <div class="security-box" style="border: 2px solid #00b894;">
-      <div style="text-align:center; margin-bottom:20px;">
-        <i class="fas fa-microphone-alt" id="mic-icon" style="font-size: 3rem; color: #333;"></i>
-      </div>
-      <h3>Voice Authorization</h3>
-      <p style="color:#666; font-size:0.9rem;">Passphrase: <b>"activate system"</b></p>
-      <p id="voice-status" style="color:#00b894; height:20px;">Click mic to speak...</p>
-      <button class="mic-btn" onclick="startVoiceListening()"><i class="fas fa-microphone"></i> Listen</button>
-      <button class="btn-cancel" style="margin-top:10px; width:100%;" onclick="cancelLogin()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Override Modal -->
-  <div id="override-modal" class="modal-overlay hidden">
-    <div class="security-box" style="border: 2px solid #FF6584;">
-      <h3 style="color:#FF6584;">System Override</h3>
-      <input type="password" id="override-code-input" class="clean-input" placeholder="Omega Code" />
-      <button class="btn-verify" style="background:#FF6584; margin-top:15px; width:100%;" onclick="checkOverrideCode()">Unlock</button>
-      <button class="btn-cancel" style="margin-top:5px; width:100%;" onclick="cancelLogin()">Cancel</button>
-    </div>
-  </div>
-
-  <!-- Password Edit Modal -->
-  <div id="password-modal" class="modal-overlay hidden">
-    <div class="security-box">
-      <h3 id="modal-title">Update Credential</h3>
-      <p id="target-user-display" style="margin-bottom:15px; color:#555; font-weight:bold;">User:</p>
-      <input type="text" id="new-data-input" placeholder="Enter New Value" class="clean-input" />
-      <div style="display:flex; gap:10px; margin-top:20px;">
-        <button class="btn-cancel" onclick="closePassModal()">Cancel</button>
-        <button class="btn-verify" onclick="confirmDataChange()">Update</button>
-      </div>
-    </div>
-  </div>
-  <!-- Add Class Modal -->
-<div id="class-modal" class="modal-overlay hidden">
-  <div class="security-box" style="width:400px;">
-    <h3>Add New Class</h3>
-    <p style="color:#555;">Upload student list (.csv)</p>
-    <input type="text" id="class-name" placeholder="Class Name (e.g., 1A)" class="clean-input" />
-    <input type="file" id="csv-file" accept=".csv" class="clean-input" />
-    <div style="display:flex; gap:10px; margin-top:20px;">
-      <button class="btn-cancel" onclick="closeClassModal()">Cancel</button>
-      <button class="btn-verify" onclick="uploadClass()">Upload</button>
-    </div>
-  </div>
-</div>
-
-
   <!-- Login -->
   <div id="login-container" class="login-wrapper">
     <div class="glass-login-card">
@@ -163,12 +71,12 @@
         <h3>AuraFlow</h3>
       </div>
       <nav class="menu">
-        <a href="#" onclick="currentView='home';setupDashboard(currentUser)" id="nav-home" class="active"><i class="fas fa-home"></i> <span>Home</span></a>
-        <a href="#" onclick="currentView='users';setupDashboard(currentUser)" id="nav-users"><i class="fas fa-users-cog"></i> <span>Manage Users</span></a>
-        <a href="#" onclick="currentView='info';setupDashboard(currentUser)" id="nav-info"><i class="fas fa-user-graduate"></i> <span>Student Info</span></a>
-        <a href="#" onclick="currentView='meeting';setupDashboard(currentUser)" id="nav-meeting"><i class="fas fa-video"></i> <span>Meeting</span></a>
-        <button onclick="logout()" style="background:none; border:none; color:rgba(255,255,255,0.7); display:flex; padding:15px; width:100%; cursor:pointer; margin-top:20px;">
-          <i class="fas fa-sign-out-alt"></i> <span style="margin-left:10px;">Logout</span>
+        <a href="#" onclick="switchView('home')" id="nav-home" class="active"><i class="fas fa-home"></i> <span>Home</span></a>
+        <a href="#" onclick="switchView('users')" id="nav-users"><i class="fas fa-users-cog"></i> <span>Manage Users</span></a>
+        <a href="#" onclick="switchView('info')" id="nav-info"><i class="fas fa-user-graduate"></i> <span>Student Info</span></a>
+        <a href="#" onclick="switchView('meeting')" id="nav-meeting"><i class="fas fa-video"></i> <span>Meeting</span></a>
+        <button onclick="logout()" class="logout-btn">
+          <i class="fas fa-sign-out-alt"></i> <span>Logout</span>
         </button>
       </nav>
     </aside>
@@ -180,15 +88,47 @@
           <p id="welcome-message" style="font-size:0.9rem; color:#666; margin:0;">Welcome back</p>
         </div>
         <div class="header-actions">
-          <div id="admin-controls-header"></div> 
-          <div class="user-profile"><img src="" alt="User" id="header-avatar" /></div>
+          <div class="user-profile">
+            <img src="https://cdn-icons-png.flaticon.com/512/847/847969.png" alt="User" id="header-avatar" />
+          </div>
         </div>
       </header>
-      <div id="simple-view" class="simple-container"></div>
+      <div id="simple-view" class="simple-container">
+        <div class="simple-box">
+          <h3>Welcome to AuraFlow</h3>
+          <p>This is your control dashboard. Choose a section from the sidebar to begin.</p>
+        </div>
+      </div>
     </main>
   </div>
 
-  <!-- Main Script -->
-  <script src="script.js" defer></script>
+  <!-- Simple Login Script -->
+  <script>
+    function login() {
+      const username = document.getElementById("username").value.trim();
+      const password = document.getElementById("password").value.trim();
+      const errorMsg = document.getElementById("login-error");
+
+      if (username === "admin" && password === "1234") {
+        document.getElementById("login-container").classList.add("hidden");
+        document.getElementById("main-dashboard").classList.remove("hidden");
+        document.getElementById("welcome-message").innerText = "Welcome back, Admin!";
+      } else {
+        errorMsg.style.display = "block";
+      }
+    }
+
+    function logout() {
+      document.getElementById("main-dashboard").classList.add("hidden");
+      document.getElementById("login-container").classList.remove("hidden");
+    }
+
+    function switchView(view) {
+      document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
+      document.getElementById("nav-" + view).classList.add("active");
+      document.getElementById("simple-view").innerHTML =
+        `<div class='simple-box'><h3>${view.charAt(0).toUpperCase() + view.slice(1)} View</h3><p>Content for ${view} section will appear here.</p></div>`;
+    }
+  </script>
 </body>
 </html>
