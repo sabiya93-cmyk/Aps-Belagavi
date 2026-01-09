@@ -9,10 +9,15 @@ const firebaseConfig = {
   measurementId: "G-B4729784Q4"
 };
 
-// Initialize Firebase
-const app = window.firebaseModules.initializeApp(firebaseConfig);
-const db = window.firebaseModules.getFirestore(app);
-const analytics = window.firebaseModules.getAnalytics(app);
+// --- INITIALIZATION ---
+let app, db, analytics;
+window.addEventListener("DOMContentLoaded", async () => {
+  if (window.firebaseModules) {
+    app = window.firebaseModules.initializeApp(firebaseConfig);
+    db = window.firebaseModules.getFirestore(app);
+    analytics = window.firebaseModules.getAnalytics(app);
+  }
+});
 
 // --- GLOBAL VARIABLES ---
 let users = {};
@@ -33,15 +38,20 @@ const defaultUsers = {
   stud1: { pass: "stud123", role: "Student", name: "Rahul", stdClass: "10th A", accessCode: "S-101", marks: ["Math: 95"], attendance: 85 }
 };
 
-// --- BOOT SCREEN + LOAD DATABASE ---
+// --- BOOT SCREEN HANDLER ---
 window.addEventListener("load", () => {
+  const boot = document.getElementById("boot-screen");
   setTimeout(() => {
-    const boot = document.getElementById("boot-screen");
-    if (boot) boot.classList.add("fade-out");
-    loadDatabase();
-  }, 1200);
+    boot.classList.add("fade-out");
+    setTimeout(() => {
+      boot.style.display = "none";
+      document.getElementById("login-container").classList.remove("hidden");
+      loadDatabase();
+    }, 1000);
+  }, 1500);
 });
 
+// --- LOCAL DATABASE / FIREBASE SYNC ---
 async function loadDatabase() {
   const savedUsers = localStorage.getItem("auraFlowDB");
   users = savedUsers ? JSON.parse(savedUsers) : { ...defaultUsers };
@@ -50,25 +60,31 @@ async function loadDatabase() {
   meetingLogs = savedLogs ? JSON.parse(savedLogs) : [];
 
   try {
+    if (!db) return; // skip if Firebase not initialized
     const docRef = window.firebaseModules.doc(db, "schoolSystem", "mainData");
     const docSnap = await window.firebaseModules.getDoc(docRef);
     if (docSnap.exists()) {
-      users = docSnap.data().users;
-      meetingLogs = docSnap.data().logs || [];
+      const data = docSnap.data();
+      users = data.users || users;
+      meetingLogs = data.logs || meetingLogs;
       saveLocal();
-    } else saveDatabase();
+    } else {
+      saveDatabase();
+    }
   } catch (err) {
-    console.log("Firebase offline or permission denied");
+    console.warn("Firebase offline or permission denied");
   }
 }
 
 async function saveDatabase() {
-  localStorage.setItem("auraFlowDB", JSON.stringify(users));
-  localStorage.setItem("auraLogs", JSON.stringify(meetingLogs));
+  saveLocal();
   try {
-    await window.firebaseModules.setDoc(window.firebaseModules.doc(db, "schoolSystem", "mainData"), {
-      users, logs: meetingLogs
-    });
+    if (db) {
+      await window.firebaseModules.setDoc(
+        window.firebaseModules.doc(db, "schoolSystem", "mainData"),
+        { users, logs: meetingLogs }
+      );
+    }
   } catch (err) {
     console.error("Cloud Error:", err);
   }
@@ -81,84 +97,23 @@ function saveLocal() {
 
 // --- LOGIN / SECURITY ---
 function login() {
-  const userIn = document.getElementById("username").value;
-  const passIn = document.getElementById("password").value;
+  const userIn = document.getElementById("username").value.trim();
+  const passIn = document.getElementById("password").value.trim();
   const errorMsg = document.getElementById("login-error");
 
   if (users[userIn] && users[userIn].pass === passIn) {
-    if (users[userIn].role === "Admin" || users[userIn].role === "Master") {
-      document.getElementById("security-question-text").innerText = users[userIn].quest;
-      document.getElementById("security-modal").classList.remove("hidden");
-      tempUser = userIn;
-      errorMsg.style.display = "none";
-    } else {
-      currentUser = userIn;
-      finalizeLogin();
-    }
+    errorMsg.style.display = "none";
+    currentUser = userIn;
+    finalizeLogin();
   } else {
     errorMsg.style.display = "block";
   }
 }
 
-function verifySecurityAnswer() {
-  const ansIn = document.getElementById("security-answer").value;
-  if (ansIn === users[tempUser].ans) {
-    document.getElementById("security-modal").classList.add("hidden");
-    currentUser = tempUser;
-    tempUser = null;
-
-    if (currentUser === "master") {
-      document.getElementById("master-choice-modal").classList.remove("hidden");
-    } else finalizeLogin();
-  } else {
-    document.getElementById("security-error").style.display = "block";
-  }
-}
-
-function chooseAuth(type) {
-  document.getElementById("master-choice-modal").classList.add("hidden");
-  if (type === "voice") document.getElementById("voice-modal").classList.remove("hidden");
-  else document.getElementById("override-modal").classList.remove("hidden");
-}
-
-function checkOverrideCode() {
-  if (document.getElementById("override-code-input").value === users["master"].ans) {
-    document.getElementById("override-modal").classList.add("hidden");
-    finalizeLogin();
-  } else alert("ACCESS DENIED");
-}
-
-function startVoiceListening() {
-  const SpeechRecognition = window.SpeechRecognition || window.webkitSpeechRecognition;
-  if (!SpeechRecognition) { alert("Voice API not supported."); return; }
-  const recognition = new SpeechRecognition();
-  recognition.start();
-  recognition.onresult = (e) => {
-    if (e.results[0][0].transcript.toLowerCase().includes(users["master"].voicePass)) {
-      document.getElementById("voice-modal").classList.add("hidden");
-      finalizeLogin();
-    } else document.getElementById("voice-status").innerText = "Incorrect.";
-  };
-}
-
 function finalizeLogin() {
-  document.getElementById("login-container").style.display = "none";
-  if (users[currentUser].role === "Admin" || users[currentUser].role === "Master") {
-    document.getElementById("admin-verify-overlay").classList.remove("hidden");
-    setTimeout(() => {
-      document.getElementById("admin-verify-overlay").classList.add("hidden");
-      document.getElementById("main-dashboard").classList.remove("hidden");
-      setupDashboard(currentUser);
-    }, 1200);
-  } else {
-    document.getElementById("main-dashboard").classList.remove("hidden");
-    setupDashboard(currentUser);
-  }
-}
-
-function cancelLogin() {
-  document.querySelectorAll(".modal-overlay").forEach(el => el.classList.add("hidden"));
-  tempUser = null;
+  document.getElementById("login-container").classList.add("hidden");
+  document.getElementById("main-dashboard").classList.remove("hidden");
+  setupDashboard(currentUser);
 }
 
 function logout() {
@@ -166,134 +121,43 @@ function logout() {
   realAdmin = null;
   currentView = "home";
   document.getElementById("main-dashboard").classList.add("hidden");
-  document.getElementById("login-container").style.display = "flex";
+  document.getElementById("login-container").classList.remove("hidden");
   document.getElementById("username").value = "";
   document.getElementById("password").value = "";
-  document.getElementById("admin-controls-header").innerHTML = "";
 }
 
-// --- IMPERSONATION ---
-function impersonateUser(id) {
-  if (!realAdmin) realAdmin = currentUser;
-  currentUser = id;
-  currentView = "home";
-  alert(`Logged in as ${users[id].name}`);
-  setupDashboard(id);
-}
-
-function returnToAdmin() {
-  if (realAdmin) {
-    currentUser = realAdmin;
-    realAdmin = null;
-    currentView = "users";
-    setupDashboard(currentUser);
-  }
-}
-
-// --- ADMIN USER MANAGEMENT ---
-function openEditModal(username, mode) {
-  targetUserForEdit = username;
-  editMode = mode;
-  document.getElementById("modal-title").innerText = mode === "pass" ? "Change Password" : "Change Access Code";
-  document.getElementById("target-user-display").innerText = `Editing: ${users[username].name}`;
-  document.getElementById("new-data-input").value = "";
-  document.getElementById("password-modal").classList.remove("hidden");
-}
-
-function confirmDataChange() {
-  const val = document.getElementById("new-data-input").value;
-  if (!val) return alert("Value cannot be empty");
-  if (editMode === "pass") users[targetUserForEdit].pass = val;
-  else users[targetUserForEdit].accessCode = val;
-  saveDatabase();
-  closePassModal();
+// --- VIEW SWITCHER ---
+function switchView(view) {
+  document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
+  document.getElementById("nav-" + view).classList.add("active");
+  currentView = view;
   setupDashboard(currentUser);
 }
 
-function closePassModal() { 
-  document.getElementById("password-modal").classList.add("hidden"); 
-  targetUserForEdit = null;
-}
-
-function createNewUser() {
-  const id = document.getElementById("new-id").value;
-  const pass = document.getElementById("new-pass").value;
-  const name = document.getElementById("new-name").value;
-  const role = document.getElementById("new-role").value;
-  if (!id || !pass) return alert("Fill all fields");
-
-  let access = role === "Student" ? "S-" + Math.floor(Math.random()*1000) : "";
-  users[id] = { pass, role, name, marks: [], attendance: 0, accessCode: access };
-  saveDatabase();
-  alert("Created!");
-  setupDashboard(currentUser);
-}
-
-function deleteUser(id) {
-  if (confirm(`Delete ${id}?`)) {
-    delete users[id];
-    saveDatabase();
-    setupDashboard(currentUser);
-  }
-}
-
-// --- MEETING FUNCTIONS ---
-function createMeeting() { activeMeetingCode = "CLASS-" + Math.floor(1000 + Math.random()*9000); setupDashboard(currentUser); }
-function launchMeeting(code) { if (code) window.open("https://meet.jit.si/" + code, "_blank"); }
-
-function joinMeeting() {
-  const codeIn = document.getElementById("join-code").value;
-  const accessIn = document.getElementById("join-access").value;
-  if (codeIn !== activeMeetingCode) return alert("Invalid Meeting Code");
-  if (accessIn !== users[currentUser].accessCode) return alert("Invalid Access Code");
-
-  meetingLogs.unshift({ student: users[currentUser].name, id: currentUser, classCode: codeIn, loginTime: new Date().toLocaleTimeString(), logoutTime: "Active" });
-  saveDatabase();
-  window.open("https://meet.jit.si/" + codeIn, "_blank");
-  setupDashboard(currentUser);
-}
-
-function endClass() {
-  const logIndex = meetingLogs.findIndex(l => l.id === currentUser && l.logoutTime === "Active");
-  if (logIndex !== -1) {
-    meetingLogs[logIndex].logoutTime = new Date().toLocaleTimeString();
-    saveDatabase();
-    setupDashboard(currentUser);
-  }
-}
-
-// --- DASHBOARD RENDERER ---
+// --- DASHBOARD SETUP ---
 function setupDashboard(userId) {
   const user = users[userId];
   const role = user.role;
-  currentView = currentView || "home";
-
-  document.querySelectorAll(".menu a").forEach(el => el.classList.remove("active"));
-  if (document.getElementById(`nav-${currentView}`)) document.getElementById(`nav-${currentView}`).classList.add("active");
-
-  // Sidebar visibility
-  document.getElementById("nav-users").style.display = (role === "Admin" || role === "Master") ? "flex" : "none";
-  document.getElementById("nav-info").style.display = role === "Master" ? "none" : "flex";
-
-  // Return to Admin button
-  const headerControls = document.getElementById("admin-controls-header");
-  headerControls.innerHTML = realAdmin ? `<button onclick="returnToAdmin()" class="btn-login small" style="background:#FF6584; margin-right:10px;">Return to Admin</button>` : "";
-
-  // Welcome header
   document.getElementById("welcome-header").innerText = `${role} Dashboard`;
   document.getElementById("welcome-message").innerText = `Hello, ${user.name}`;
 
   const view = document.getElementById("simple-view");
   view.innerHTML = "";
 
-  // --- USERS MANAGEMENT ---
+  // Sidebar control
+  document.getElementById("nav-users").style.display = (role === "Admin" || role === "Master") ? "flex" : "none";
+  document.getElementById("nav-info").style.display = role === "Master" ? "none" : "flex";
+
+  // --- USERS VIEW ---
   if (currentView === "users" && (role === "Admin" || role === "Master")) {
     let userListHTML = "";
     for (let u in users) {
       if (u === "master" && role !== "Master") continue;
       let buttons = `<button class="btn-login small" onclick="impersonateUser('${u}')">Login</button>`;
-      if (users[u].role === "Teacher" || users[u].role === "Admin") buttons += `<button class="btn-login small" onclick="openEditModal('${u}','pass')">Pass</button>`;
-      if (users[u].role === "Student") buttons += `<button class="btn-login small" onclick="openEditModal('${u}','access')">Access</button>`;
+      if (users[u].role === "Teacher" || users[u].role === "Admin")
+        buttons += `<button class="btn-login small" onclick="openEditModal('${u}','pass')">Pass</button>`;
+      if (users[u].role === "Student")
+        buttons += `<button class="btn-login small" onclick="openEditModal('${u}','access')">Access</button>`;
       buttons += `<button class="btn-login small" style="background:#ff4757;" onclick="deleteUser('${u}')">Del</button>`;
       userListHTML += `<li style="display:flex; justify-content:space-between;">${users[u].name} (${users[u].role}) <span>${buttons}</span></li>`;
     }
@@ -311,7 +175,6 @@ function setupDashboard(userId) {
         </select>
         <button onclick="createNewUser()">Create</button>
         <hr style="margin:20px 0; opacity:0.3;">
-        <button class="btn-login" style="background:#00b894;" onclick="openClassModal()">+ Add Class (Upload CSV)</button>
       </div>
       <div class="simple-box"><h3>User Database</h3><ul>${userListHTML}</ul></div>
     `;
@@ -323,7 +186,7 @@ function setupDashboard(userId) {
     let html = "<div class='simple-box'><h3>Student Info</h3><ul>";
     for (let u in users)
       if (users[u].role === "Student")
-        html += `<li>${users[u].name} - Attendance: ${users[u].attendance}% - Access: ${users[u].accessCode}</li>`;
+        html += `<li>${users[u].name} - Attendance: ${users[u].attendance || 0}% - Access: ${users[u].accessCode || "N/A"}</li>`;
     html += "</ul></div>";
     view.innerHTML = html;
     return;
@@ -346,68 +209,74 @@ function setupDashboard(userId) {
   }
 
   // --- HOME ---
-  view.innerHTML = `<div class="simple-box"><h3>Welcome</h3><p>Select an option from the sidebar.</p></div>`;
+  view.innerHTML = `<div class="simple-box"><h3>Welcome to AuraFlow</h3><p>Select a section from the sidebar.</p></div>`;
 }
 
-// --- CLASS UPLOAD FUNCTIONS ---
-function openClassModal() {
-  document.getElementById("class-modal").classList.remove("hidden");
+// --- ADMIN FUNCTIONS ---
+function createNewUser() {
+  const id = document.getElementById("new-id").value.trim();
+  const pass = document.getElementById("new-pass").value.trim();
+  const name = document.getElementById("new-name").value.trim();
+  const role = document.getElementById("new-role").value.trim();
+
+  if (!id || !pass || !name) return alert("All fields required.");
+  let access = role === "Student" ? "S-" + Math.floor(Math.random() * 1000) : "";
+
+  users[id] = { pass, role, name, marks: [], attendance: 0, accessCode: access };
+  saveDatabase();
+  alert("User created!");
+  setupDashboard(currentUser);
 }
 
-function closeClassModal() {
-  document.getElementById("class-modal").classList.add("hidden");
-  document.getElementById("class-name").value = "";
-  document.getElementById("csv-file").value = "";
-}
-
-function uploadClass() {
-  const className = document.getElementById("class-name").value.trim();
-  const fileInput = document.getElementById("csv-file");
-  if (!className || !fileInput.files.length)
-    return alert("Please enter class name and upload a CSV file.");
-
-  const file = fileInput.files[0];
-  const reader = new FileReader();
-
-  reader.onload = function (e) {
-    const lines = e.target.result.split("\n").filter((l) => l.trim() !== "");
-    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
-    if (!headers.includes("name") || !headers.includes("id") || !headers.includes("password")) {
-      alert("Invalid CSV format. Required headers: name, id, password");
-      return;
-    }
-
-    const nameIdx = headers.indexOf("name");
-    const idIdx = headers.indexOf("id");
-    const passIdx = headers.indexOf("password");
-
-    let count = 0;
-    for (let i = 1; i < lines.length; i++) {
-      const row = lines[i].split(",");
-      if (row.length < 3) continue;
-      const name = row[nameIdx].trim();
-      const id = row[idIdx].trim();
-      const pass = row[passIdx].trim();
-
-      if (!id || !pass) continue;
-
-      users[id] = {
-        pass,
-        role: "Student",
-        name,
-        stdClass: className,
-        accessCode: "S-" + Math.floor(Math.random() * 1000),
-        marks: [],
-        attendance: 0,
-      };
-      count++;
-    }
-
+function deleteUser(id) {
+  if (confirm(`Delete ${id}?`)) {
+    delete users[id];
     saveDatabase();
-    alert(`✅ ${count} students added to Class ${className}`);
-    closeClassModal();
     setupDashboard(currentUser);
-  };
+  }
+}
 
-  reader.readAsText(file);
+// --- MEETING HANDLERS ---
+function createMeeting() {
+  activeMeetingCode = "CLASS-" + Math.floor(1000 + Math.random() * 9000);
+  setupDashboard(currentUser);
+}
+
+function launchMeeting(code) {
+  if (code) window.open("https://meet.jit.si/" + code, "_blank");
+}
+
+function joinMeeting() {
+  const codeIn = document.getElementById("join-code").value.trim();
+  const accessIn = document.getElementById("join-access").value.trim();
+  if (codeIn !== activeMeetingCode) return alert("Invalid Meeting Code");
+  if (accessIn !== users[currentUser].accessCode) return alert("Invalid Access Code");
+
+  meetingLogs.unshift({
+    student: users[currentUser].name,
+    id: currentUser,
+    classCode: codeIn,
+    loginTime: new Date().toLocaleTimeString(),
+    logoutTime: "Active"
+  });
+  saveDatabase();
+  window.open("https://meet.jit.si/" + codeIn, "_blank");
+  setupDashboard(currentUser);
+}
+
+function endClass() {
+  const logIndex = meetingLogs.findIndex(l => l.id === currentUser && l.logoutTime === "Active");
+  if (logIndex !== -1) {
+    meetingLogs[logIndex].logoutTime = new Date().toLocaleTimeString();
+    saveDatabase();
+    setupDashboard(currentUser);
+  }
+}
+
+// --- IMPERSONATION ---
+function impersonateUser(id) {
+  if (!realAdmin) realAdmin = currentUser;
+  currentUser = id;
+  alert(`Logged in as ${users[id].name}`);
+  setupDashboard(id);
 }
