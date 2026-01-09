@@ -130,5 +130,16 @@
         `<div class='simple-box'><h3>${view.charAt(0).toUpperCase() + view.slice(1)} View</h3><p>Content for ${view} section will appear here.</p></div>`;
     }
   </script>
+  <script>
+  // Boot screen fade-out animation
+  window.addEventListener("load", () => {
+    const boot = document.getElementById("boot-screen");
+    setTimeout(() => {
+      boot.classList.add("fade-out");
+      setTimeout(() => (boot.style.display = "none"), 1200);
+    }, 2000); // keeps "System Initializing..." for 2 seconds
+  });
+</script>
+
 </body>
 </html>
