@@ -1,5 +1,11 @@
 // --- FIREBASE CONFIGURATION ---
-const firebaseConfig = {
+// Wait until firebaseModules is ready
+if (!window.firebaseModules) {
+  console.error("Firebase modules not loaded — check your index.html imports!");
+}
+
+// Initialize Firebase and Firestore
+const app = window.firebaseModules.initializeApp({
   apiKey: "AIzaSyCaHjvIQUOF2OtsdIqZp45RCKYTFKh8QwM",
   authDomain: "aps-belagavi.firebaseapp.com",
   projectId: "aps-belagavi",
@@ -7,12 +13,18 @@ const firebaseConfig = {
   messagingSenderId: "858834476044",
   appId: "1:858834476044:web:944b457fd2a7b0c0e42229",
   measurementId: "G-B4729784Q4"
-};
+});
 
-// --- INITIALIZE FIREBASE ---
-const app = window.firebaseModules.initializeApp(firebaseConfig);
 const db = window.firebaseModules.getFirestore(app);
 const analytics = window.firebaseModules.getAnalytics(app);
+
+// Fade out boot screen and load data
+window.addEventListener("load", () => {
+  setTimeout(() => {
+    document.getElementById("boot-screen").classList.add("fade-out");
+    loadDatabase();
+  }, 1000);
+});
 
 // --- DATABASE DEFAULTS ---
 const defaultUsers = {
