@@ -13,23 +13,13 @@
   />
 
   <!-- Firebase Imports -->
-  <script type="module">
-    import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
-    import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
-    import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
+ <script type="module">
+  import { initializeApp } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-app.js";
+  import { getFirestore, doc, getDoc, setDoc, updateDoc, arrayUnion } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-firestore.js";
+  import { getAnalytics } from "https://www.gstatic.com/firebasejs/9.6.1/firebase-analytics.js";
 
-    // Make Firebase available globally
-    window.firebaseModules = {
-      initializeApp,
-      getFirestore,
-      getAnalytics,
-      doc,
-      getDoc,
-      setDoc,
-      updateDoc,
-      arrayUnion
-    };
-  </script>
+  window.firebaseModules = { initializeApp, getFirestore, getAnalytics, doc, getDoc, setDoc, updateDoc, arrayUnion };
+</script>
 </head>
 
 <body>
