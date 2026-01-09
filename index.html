@@ -98,19 +98,6 @@
 
   <!-- Scripts -->
   <script>
-    // Boot screen fade-out and login reveal
-    window.addEventListener("load", () => {
-      const boot = document.getElementById("boot-screen");
-      const loginContainer = document.getElementById("login-container");
-
-      setTimeout(() => {
-        boot.classList.add("fade-out");
-        setTimeout(() => {
-          boot.style.display = "none";
-          loginContainer.classList.remove("hidden");
-        }, 1200);
-      }, 2000); // show boot for 2 seconds
-    });
 
     // Simple login function
     function login() {
