@@ -332,5 +332,22 @@ function setupDashboard(userId) {
   }
 
   // --- HOME ---
-  view.innerHTML = `<div class="simple-box"><h3>Welcome</h3><p>Select an option from the menu.</p></div>`;
+  view.innerHTML = `
+  <div class="simple-box">
+    <h3>Add New User</h3>
+    <input type="text" id="new-name" placeholder="Name">
+    <input type="text" id="new-id" placeholder="User ID">
+    <input type="text" id="new-pass" placeholder="Password">
+    <select id="new-role">
+      <option>Student</option>
+      <option>Teacher</option>
+      <option>Admin</option>
+    </select>
+    <button onclick="createNewUser()">Create</button>
+    <hr style="margin:20px 0; opacity:0.3;">
+    <button class="btn-login" style="background:#00b894;" onclick="openClassModal()">+ Add Class (Upload CSV)</button>
+  </div>
+  <div class="simple-box"><h3>User Database</h3><ul>${userListHTML}</ul></div>
+`;
+
 }
