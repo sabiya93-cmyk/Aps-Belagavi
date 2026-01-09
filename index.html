@@ -113,6 +113,20 @@
       </div>
     </div>
   </div>
+  <!-- Add Class Modal -->
+<div id="class-modal" class="modal-overlay hidden">
+  <div class="security-box" style="width:400px;">
+    <h3>Add New Class</h3>
+    <p style="color:#555;">Upload student list (.csv)</p>
+    <input type="text" id="class-name" placeholder="Class Name (e.g., 1A)" class="clean-input" />
+    <input type="file" id="csv-file" accept=".csv" class="clean-input" />
+    <div style="display:flex; gap:10px; margin-top:20px;">
+      <button class="btn-cancel" onclick="closeClassModal()">Cancel</button>
+      <button class="btn-verify" onclick="uploadClass()">Upload</button>
+    </div>
+  </div>
+</div>
+
 
   <!-- Login -->
   <div id="login-container" class="login-wrapper">
