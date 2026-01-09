@@ -298,20 +298,32 @@ function setupDashboard(userId) {
       userListHTML += `<li style="display:flex; justify-content:space-between;">${users[u].name} (${users[u].role}) <span>${buttons}</span></li>`;
     }
 
-    view.innerHTML = `<div class="simple-box"><h3>Add New User</h3>
-      <input type="text" id="new-name" placeholder="Name">
-      <input type="text" id="new-id" placeholder="User ID">
-      <input type="text" id="new-pass" placeholder="Password">
-      <select id="new-role"><option>Student</option><option>Teacher</option><option>Admin</option></select>
-      <button onclick="createNewUser()">Create</button></div>
-      <div class="simple-box"><h3>User Database</h3><ul>${userListHTML}</ul></div>`;
+    view.innerHTML = `
+      <div class="simple-box">
+        <h3>Add New User</h3>
+        <input type="text" id="new-name" placeholder="Name">
+        <input type="text" id="new-id" placeholder="User ID">
+        <input type="text" id="new-pass" placeholder="Password">
+        <select id="new-role">
+          <option>Student</option>
+          <option>Teacher</option>
+          <option>Admin</option>
+        </select>
+        <button onclick="createNewUser()">Create</button>
+        <hr style="margin:20px 0; opacity:0.3;">
+        <button class="btn-login" style="background:#00b894;" onclick="openClassModal()">+ Add Class (Upload CSV)</button>
+      </div>
+      <div class="simple-box"><h3>User Database</h3><ul>${userListHTML}</ul></div>
+    `;
     return;
   }
 
   // --- STUDENT INFO ---
   if (currentView === "info") {
     let html = "<div class='simple-box'><h3>Student Info</h3><ul>";
-    for (let u in users) if (users[u].role === "Student") html += `<li>${users[u].name} - Attendance: ${users[u].attendance}% - Access: ${users[u].accessCode}</li>`;
+    for (let u in users)
+      if (users[u].role === "Student")
+        html += `<li>${users[u].name} - Attendance: ${users[u].attendance}% - Access: ${users[u].accessCode}</li>`;
     html += "</ul></div>";
     view.innerHTML = html;
     return;
@@ -325,30 +337,18 @@ function setupDashboard(userId) {
       view.innerHTML = `<div class="simple-box"><h3>Video Class</h3><button onclick="createMeeting()">Generate Code</button><div>${codeDisplay}${startBtn}</div></div>`;
     } else if (role === "Student") {
       const activeLog = meetingLogs.find(l => l.id === currentUser && l.logoutTime === "Active");
-      if (activeLog) view.innerHTML = `<div class="simple-box"><h3>Active: ${activeLog.classCode}</h3><button onclick="endClass()">End Class</button></div>`;
-      else view.innerHTML = `<div class="simple-box"><h3>Join Class</h3><input id="join-code" placeholder="Meeting Code"><input id="join-access" placeholder="Access Code"><button onclick="joinMeeting()">Join</button></div>`;
+      if (activeLog)
+        view.innerHTML = `<div class="simple-box"><h3>Active: ${activeLog.classCode}</h3><button onclick="endClass()">End Class</button></div>`;
+      else
+        view.innerHTML = `<div class="simple-box"><h3>Join Class</h3><input id="join-code" placeholder="Meeting Code"><input id="join-access" placeholder="Access Code"><button onclick="joinMeeting()">Join</button></div>`;
     }
     return;
   }
 
   // --- HOME ---
-  view.innerHTML = `
-  <div class="simple-box">
-    <h3>Add New User</h3>
-    <input type="text" id="new-name" placeholder="Name">
-    <input type="text" id="new-id" placeholder="User ID">
-    <input type="text" id="new-pass" placeholder="Password">
-    <select id="new-role">
-      <option>Student</option>
-      <option>Teacher</option>
-      <option>Admin</option>
-    </select>
-    <button onclick="createNewUser()">Create</button>
-    <hr style="margin:20px 0; opacity:0.3;">
-    <button class="btn-login" style="background:#00b894;" onclick="openClassModal()">+ Add Class (Upload CSV)</button>
-  </div>
-  <div class="simple-box"><h3>User Database</h3><ul>${userListHTML}</ul></div>
-`;
+  view.innerHTML = `<div class="simple-box"><h3>Welcome</h3><p>Select an option from the sidebar.</p></div>`;
+}
+
 // --- CLASS UPLOAD FUNCTIONS ---
 function openClassModal() {
   document.getElementById("class-modal").classList.remove("hidden");
@@ -363,14 +363,15 @@ function closeClassModal() {
 function uploadClass() {
   const className = document.getElementById("class-name").value.trim();
   const fileInput = document.getElementById("csv-file");
-  if (!className || !fileInput.files.length) return alert("Please enter class name and upload a CSV file.");
+  if (!className || !fileInput.files.length)
+    return alert("Please enter class name and upload a CSV file.");
 
   const file = fileInput.files[0];
   const reader = new FileReader();
 
-  reader.onload = function(e) {
-    const lines = e.target.result.split("\n").filter(l => l.trim() !== "");
-    const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+  reader.onload = function (e) {
+    const lines = e.target.result.split("\n").filter((l) => l.trim() !== "");
+    const headers = lines[0].split(",").map((h) => h.trim().toLowerCase());
     if (!headers.includes("name") || !headers.includes("id") || !headers.includes("password")) {
       alert("Invalid CSV format. Required headers: name, id, password");
       return;
@@ -397,7 +398,7 @@ function uploadClass() {
         stdClass: className,
         accessCode: "S-" + Math.floor(Math.random() * 1000),
         marks: [],
-        attendance: 0
+        attendance: 0,
       };
       count++;
     }
@@ -409,6 +410,4 @@ function uploadClass() {
   };
 
   reader.readAsText(file);
-}
-
 }
