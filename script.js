@@ -349,5 +349,66 @@ function setupDashboard(userId) {
   </div>
   <div class="simple-box"><h3>User Database</h3><ul>${userListHTML}</ul></div>
 `;
+// --- CLASS UPLOAD FUNCTIONS ---
+function openClassModal() {
+  document.getElementById("class-modal").classList.remove("hidden");
+}
+
+function closeClassModal() {
+  document.getElementById("class-modal").classList.add("hidden");
+  document.getElementById("class-name").value = "";
+  document.getElementById("csv-file").value = "";
+}
+
+function uploadClass() {
+  const className = document.getElementById("class-name").value.trim();
+  const fileInput = document.getElementById("csv-file");
+  if (!className || !fileInput.files.length) return alert("Please enter class name and upload a CSV file.");
+
+  const file = fileInput.files[0];
+  const reader = new FileReader();
+
+  reader.onload = function(e) {
+    const lines = e.target.result.split("\n").filter(l => l.trim() !== "");
+    const headers = lines[0].split(",").map(h => h.trim().toLowerCase());
+    if (!headers.includes("name") || !headers.includes("id") || !headers.includes("password")) {
+      alert("Invalid CSV format. Required headers: name, id, password");
+      return;
+    }
+
+    const nameIdx = headers.indexOf("name");
+    const idIdx = headers.indexOf("id");
+    const passIdx = headers.indexOf("password");
+
+    let count = 0;
+    for (let i = 1; i < lines.length; i++) {
+      const row = lines[i].split(",");
+      if (row.length < 3) continue;
+      const name = row[nameIdx].trim();
+      const id = row[idIdx].trim();
+      const pass = row[passIdx].trim();
+
+      if (!id || !pass) continue;
+
+      users[id] = {
+        pass,
+        role: "Student",
+        name,
+        stdClass: className,
+        accessCode: "S-" + Math.floor(Math.random() * 1000),
+        marks: [],
+        attendance: 0
+      };
+      count++;
+    }
+
+    saveDatabase();
+    alert(`✅ ${count} students added to Class ${className}`);
+    closeClassModal();
+    setupDashboard(currentUser);
+  };
+
+  reader.readAsText(file);
+}
 
 }
