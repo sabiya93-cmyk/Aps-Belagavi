@@ -124,6 +124,8 @@ function login() {
   const passIn = document.getElementById("password").value;
   const errorMsg = document.getElementById("login-error");
 
+  console.log("Trying login:", userIn, passIn, users);
+
   if (users[userIn] && users[userIn].pass === passIn) {
     if (users[userIn].role === "Admin" || users[userIn].role === "Master") {
       document.getElementById("security-question-text").innerText =
