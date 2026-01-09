@@ -37,7 +37,7 @@
   </div>
 
   <!-- Login -->
-  <div id="login-container" class="login-wrapper">
+  <div id="login-container" class="login-wrapper hidden">
     <div class="glass-login-card">
       <div class="login-left">
         <h1>Welcome<br />Back</h1>
@@ -102,8 +102,23 @@
     </main>
   </div>
 
-  <!-- Simple Login Script -->
+  <!-- Scripts -->
   <script>
+    // Boot screen fade-out and login reveal
+    window.addEventListener("load", () => {
+      const boot = document.getElementById("boot-screen");
+      const loginContainer = document.getElementById("login-container");
+
+      setTimeout(() => {
+        boot.classList.add("fade-out");
+        setTimeout(() => {
+          boot.style.display = "none";
+          loginContainer.classList.remove("hidden");
+        }, 1200);
+      }, 2000); // show boot for 2 seconds
+    });
+
+    // Simple login function
     function login() {
       const username = document.getElementById("username").value.trim();
       const password = document.getElementById("password").value.trim();
@@ -122,7 +137,7 @@
       document.getElementById("main-dashboard").classList.add("hidden");
       document.getElementById("login-container").classList.remove("hidden");
     }
-  
+
     function switchView(view) {
       document.querySelectorAll(".menu a").forEach(a => a.classList.remove("active"));
       document.getElementById("nav-" + view).classList.add("active");
@@ -130,16 +145,5 @@
         `<div class='simple-box'><h3>${view.charAt(0).toUpperCase() + view.slice(1)} View</h3><p>Content for ${view} section will appear here.</p></div>`;
     }
   </script>
-  <script>
-  // Boot screen fade-out animation
-  window.addEventListener("load", () => {
-    const boot = document.getElementById("boot-screen");
-    setTimeout(() => {
-      boot.classList.add("fade-out");
-      setTimeout(() => (boot.style.display = "none"), 1200);
-    }, 2000); // keeps "System Initializing..." for 2 seconds
-  });
-</script>
-
 </body>
 </html>
